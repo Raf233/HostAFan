@@ -1,0 +1,24 @@
+import React from "react";
+import PageTitle from "../layout-components/PageTitle";
+
+import FanDashboardSectionOne from "../components/fanDashboard/FanDashboardSectionOne";
+import FanDashboardSectionTwo from "../components/fanDashboard/FanDashboardSectionTwo";
+import FanDashboardSectionThree from "../components/fanDashboard/FanDashboardSectionThree";
+
+class FanDashboard extends React.Component {
+  state = {};
+
+  render() {
+    return (
+      <React.Fragment>
+        <PageTitle titleHeading="Your Dashboard" />
+
+        <FanDashboardSectionOne {...this.props} />
+        <FanDashboardSectionTwo {...this.props} />
+        <FanDashboardSectionThree />
+      </React.Fragment>
+    );
+  }
+}
+
+export default FanDashboard;
