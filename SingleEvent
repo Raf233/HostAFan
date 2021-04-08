@@ -1,0 +1,79 @@
+import React from "react";
+import { List, ListItem, Card, Button } from "@material-ui/core";
+import PropTypes from "prop-types";
+import { formatDate } from "../../services/dateService";
+
+const FDSingleEvent = (props) => {
+  props.event.dateStart = formatDate(props.event.dateStart);
+
+  const getEventDetailsClick = () => {
+    props.eventDetails(props.event);
+  };
+
+  return (
+    <React.Fragment>
+      <List>
+        <ListItem className="py-4 d-block">
+          <div className="d-flex justify-content-between">
+            <div className="d-flex align-items-center">
+              <div>
+                <Card className="card-transparent mb-3 mb-sm-0">
+                  <a
+                    href="#/"
+                    onClick={(e) => e.preventDefault()}
+                    className="card-img-wrapper card-box-hover-rise rounded-sm"
+                  >
+                    <img
+                      alt="..."
+                      className="card-img-top rounded-sm"
+                      src={props.event.imageUrl}
+                      style={{ width: 140 }}
+                    />
+                  </a>
+                </Card>
+              </div>
+              <div className="pl-0 pl-sm-4">
+                <b className="font-weight-bold font-size-lg text-black">
+                  {props.event.name}
+                </b>
+                <p className="text-black-50 mb-0">{props.event.summary}</p>
+                <small className="text-black-50 pt-1 d-block">
+                  Start Date:{" "}
+                  <b className="text-first">{props.event.dateStart}</b>
+                </small>
+              </div>
+            </div>
+            <div className="d-flex align-items-center">
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                className="mr-3 bg-amy-crisp text-white"
+                onClick={getEventDetailsClick}
+              >
+                Details
+              </Button>
+            </div>
+          </div>
+        </ListItem>
+      </List>
+    </React.Fragment>
+  );
+};
+
+FDSingleEvent.propTypes = {
+  eventDetails: PropTypes.func.isRequired,
+
+  event: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    summary: PropTypes.string.isRequired,
+    imageUrl: PropTypes.string.isRequired,
+    dateStart: PropTypes.string.isRequired,
+  }),
+
+  history: PropTypes.shape({
+    push: PropTypes.func.isRequired,
+  }),
+};
+
+export default FDSingleEvent;
