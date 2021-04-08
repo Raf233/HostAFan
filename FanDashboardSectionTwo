@@ -1,0 +1,414 @@
+import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import PerfectScrollbar from "react-perfect-scrollbar";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { BarLoader } from "react-spinners";
+import {
+  Grid,
+  List,
+  Fab,
+  IconButton,
+  Card,
+  CardContent,
+  Button,
+  Tooltip,
+  TextField,
+} from "@material-ui/core";
+import MuiAlert from "@material-ui/lab/Alert";
+import debug from "sabio-debug";
+import AddCircleTwoToneIcon from "@material-ui/icons/AddCircleTwoTone";
+import avatar1 from "../../assets/images/avatars/avatar1.jpg";
+import avatar2 from "../../assets/images/avatars/avatar2.jpg";
+import FDSingleEvent from "./FDSingleEvent";
+import * as eventService from "../../services/eventService";
+import PropTypes from "prop-types";
+
+class FanDashboardSectionTwo extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      mappedEvents: [],
+      pageIndex: 0,
+      pageSize: 10,
+      totalCount: 0,
+      totalPages: 0,
+      hasMore: true,
+      display: false,
+    };
+  }
+
+  componentDidMount() {
+    this.fetchLatest();
+  }
+
+  fetchLatest = () => {
+    eventService
+      .getByLatest(this.state.pageIndex, this.state.pageSize)
+      .then(this.onGetByLatestSuccess)
+      .catch(this.onGetByLatestError);
+  };
+
+  onGetByLatestSuccess = (response) => {
+    this.setState(
+      (prevState) => {
+        return {
+          ...prevState,
+          mappedEvents: [
+            ...prevState.mappedEvents,
+            response.item.pagedItems.map(this.mapSingleEvent),
+          ],
+          pageIndex: this.state.pageIndex + 1,
+        };
+      },
+      () => {
+        _logger(this.state.mappedEvents);
+      }
+    );
+  };
+  onGetByLatestError = (errResponse) => {
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        hasMore: false,
+      };
+    });
+  };
+
+  redirectToDetails = (event) => {
+    this.props.history.push(`/events/${event.id}/details`, {
+      type: "EVENT_DATA",
+      payload: event,
+    });
+  };
+
+  redirectToEvents = () => {
+    this.props.history.push(`/events/`);
+  };
+
+  mapSingleEvent = (event) => (
+    <FDSingleEvent
+      {...this.props}
+      event={event}
+      key={`Events-${event.id}`}
+      eventDetails={this.redirectToDetails}
+    />
+  );
+
+  render() {
+    return (
+      <React.Fragment>
+        <Grid container spacing={4}>
+          <Grid item xs={12} lg={6}>
+            <Card className="card-box mb-4">
+              <div
+                className="card-header pr-1"
+                style={{ backgroundColor: "#4D1B50" }}
+              >
+                <div className="card-header--title">
+                  <small
+                    className="d-block text-uppercase mt-1"
+                    style={{ color: "white" }}
+                  >
+                    Events
+                  </small>
+                  <b style={{ color: "white" }}>Latest</b>
+                </div>
+                <div className="card-header--actions">
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                    className="mr-3 bg-strong-bliss text-white"
+                    onClick={this.redirectToEvents}
+                  >
+                    View Other Events
+                  </Button>
+                </div>
+              </div>
+              <div id="scrollableDivThree" className="scroll-area-lg">
+                <List>
+                  <InfiniteScroll
+                    dataLength={this.state.mappedEvents.length}
+                    next={this.fetchLatest}
+                    hasMore={this.state.hasMore}
+                    scrollThreshold={0.8}
+                    scrollableTarget="scrollableDivThree"
+                    loader={
+                      <div className="d-flex align-items-center justify-content-center py-3">
+                        <BarLoader color={"var(--primary)"} loading={true} />
+                      </div>
+                    }
+                    endMessage={
+                      <div className="mb-2">
+                        <MuiAlert severity="success">
+                          This is the end of the list!
+                        </MuiAlert>
+                      </div>
+                    }
+                  >
+                    {this.state.mappedEvents}
+                  </InfiniteScroll>
+                </List>
+              </div>
+              <div
+                className="card-footer d-flex justify-content-between"
+                style={{ backgroundColor: "#4D1B50" }}
+              ></div>
+            </Card>
+          </Grid>
+          <Grid item xs={12} lg={6}>
+            <Card className="card-box mb-4">
+              <div
+                className="card-header"
+                style={{ backgroundColor: "#A61651" }}
+              >
+                <div className="card-header--title">
+                  <small style={{ color: "white" }}>Messenger</small>
+                  <b style={{ color: "white" }}>Talking to Kate</b>
+                </div>
+                <div className="card-header--actions">
+                  <Tooltip arrow title="Send new message">
+                    <Fab size="small" color="primary">
+                      <FontAwesomeIcon
+                        icon={["fas", "plus"]}
+                        className="font-size-sm"
+                      />
+                    </Fab>
+                  </Tooltip>
+                </div>
+              </div>
+              <CardContent className="p-3">
+                <div className="scroll-area shadow-overflow">
+                  <PerfectScrollbar>
+                    <div className="chat-wrapper">
+                      <div className="chat-item p-2 mb-2">
+                        <div className="align-box-row">
+                          <div className="avatar-icon-wrapper avatar-icon-lg align-self-start">
+                            <div className="avatar-icon rounded border-0">
+                              <img alt="..." src={avatar1} />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="chat-box bg-first text-white">
+                              <p>Hello, Leslie.</p>
+                              <p>This is Kate. How are you?</p>
+                            </div>
+                            <small className="mt-2 d-block text-black-50">
+                              <FontAwesomeIcon
+                                icon={["far", "clock"]}
+                                className="mr-1 opacity-5"
+                              />
+                              11:01 AM | Yesterday
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="chat-item chat-item-reverse p-2 mb-2">
+                        <div className="align-box-row flex-row-reverse">
+                          <div className="avatar-icon-wrapper avatar-icon-lg align-self-start">
+                            <div className="avatar-icon rounded border-0">
+                              <img alt="..." src={avatar2} />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="chat-box bg-first text-white">
+                              <p>Hey, Kate.</p>
+                              <p>
+                                I am attaching the pictures you requested below:
+                              </p>
+                              <Card className="mt-3 mb-2 pt-2 pb-2 text-center">
+                                <div>
+                                  <a
+                                    href="#/"
+                                    onClick={(e) => e.preventDefault()}
+                                  >
+                                    <img
+                                      alt="..."
+                                      className="img-fluid rounded m-1 shadow-sm"
+                                      src="https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/tom-giovanna-fletcher-home-makeover-guest-bedroom-041-1534036016.jpg"
+                                      width="54"
+                                    />
+                                  </a>
+                                  <a
+                                    href="#/"
+                                    onClick={(e) => e.preventDefault()}
+                                  >
+                                    <img
+                                      alt="..."
+                                      className="img-fluid rounded m-1 shadow-sm"
+                                      src="https://www.rocketmortgage.com/resources-cmsassets/RocketMortgage.com/Article_Images/Large_Images/TypesOfHomes/types-of-homes-hero.jpg"
+                                      width="54"
+                                    />
+                                  </a>
+                                </div>
+                              </Card>
+                            </div>
+                            <small className="mt-2 d-block text-black-50">
+                              <FontAwesomeIcon
+                                icon={["far", "clock"]}
+                                className="mr-1 opacity-5"
+                              />
+                              11:01 AM | Yesterday
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="chat-item p-2 mb-2">
+                        <div className="align-box-row">
+                          <div className="avatar-icon-wrapper avatar-icon-lg align-self-start">
+                            <div className="avatar-icon rounded border-0">
+                              <img alt="..." src={avatar1} />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="chat-box bg-first text-white">
+                              <p>Thanks.</p>
+                              <p>Really appreciate it!</p>
+                            </div>
+                            <small className="mt-2 d-block text-black-50">
+                              <FontAwesomeIcon
+                                icon={["far", "clock"]}
+                                className="mr-1 opacity-5"
+                              />
+                              11:01 AM | Yesterday
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="chat-item p-2 mb-2">
+                        <div className="align-box-row">
+                          <div className="avatar-icon-wrapper avatar-icon-lg align-self-start">
+                            <div className="avatar-icon rounded border-0">
+                              <img alt="..." src={avatar1} />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="chat-box bg-first text-white">
+                              <p>Bye for now, talk to you later.</p>
+                            </div>
+                            <small className="mt-2 d-block text-black-50">
+                              <FontAwesomeIcon
+                                icon={["far", "clock"]}
+                                className="mr-1 opacity-5"
+                              />
+                              11:01 AM | Yesterday
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="chat-item chat-item-reverse p-2 mb-2">
+                        <div className="align-box-row flex-row-reverse">
+                          <div className="avatar-icon-wrapper avatar-icon-lg align-self-start">
+                            <div className="avatar-icon rounded border-0">
+                              <img alt="..." src={avatar2} />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="chat-box bg-first text-white">
+                              <p>Almost forgot about your tasks.</p>
+                              <p>
+                                <b>Check the links below:</b>
+                              </p>
+                              <Card className="bg-premium-dark p-2 mt-3 mb-2">
+                                <div className="text-center py-2">
+                                  <Tooltip arrow title="Menu Example">
+                                    <IconButton
+                                      color="primary"
+                                      className="m-1 p-0 bg-grow-early d-inline-block text-center text-white font-size-xl d-40 rounded-circle"
+                                    >
+                                      <FontAwesomeIcon
+                                        icon={["fas", "lemon"]}
+                                      />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip arrow title="Menu Example">
+                                    <IconButton
+                                      color="primary"
+                                      className="m-1 p-0 bg-ripe-malin d-inline-block text-center text-white font-size-xl d-40 rounded-circle"
+                                    >
+                                      <AddCircleTwoToneIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip arrow title="Menu Example">
+                                    <IconButton
+                                      color="primary"
+                                      className="m-1 p-0 bg-plum-plate d-inline-block text-center text-white font-size-xl d-40 rounded-circle"
+                                    >
+                                      <FontAwesomeIcon icon={["far", "gem"]} />
+                                    </IconButton>
+                                  </Tooltip>
+                                </div>
+                              </Card>
+                            </div>
+                            <small className="mt-2 d-block text-black-50">
+                              <FontAwesomeIcon
+                                icon={["far", "clock"]}
+                                className="mr-1 opacity-5"
+                              />
+                              11:03 AM | Yesterday
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </PerfectScrollbar>
+                </div>
+              </CardContent>
+              <div className="card-footer bg-light p-4">
+                <div>
+                  <TextField
+                    variant="outlined"
+                    margin="dense"
+                    fullWidth
+                    placeholder="Write your message and hit enter to send..."
+                  />
+                </div>
+                <div className="align-box-row mt-3">
+                  <div className="align-items-center">
+                    <Tooltip arrow title="Add audio file">
+                      <IconButton color="default" className="text-success">
+                        <FontAwesomeIcon
+                          icon={["far", "file-audio"]}
+                          className="font-size-xl"
+                        />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip arrow title="Add video file">
+                      <IconButton color="default" className="text-danger">
+                        <FontAwesomeIcon
+                          icon={["far", "file-video"]}
+                          className="font-size-xl"
+                        />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip arrow title="Upload Documents">
+                      <IconButton color="default" className="text-info">
+                        <FontAwesomeIcon
+                          icon={["far", "file-excel"]}
+                          className="font-size-xl"
+                        />
+                      </IconButton>
+                    </Tooltip>
+                  </div>
+                  <div className="ml-auto">
+                    <Button size="small" variant="contained" color="primary">
+                      Send
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </Grid>
+        </Grid>
+      </React.Fragment>
+    );
+  }
+}
+
+FanDashboardSectionTwo.propTypes = {
+  history: PropTypes.shape({
+    push: PropTypes.func.isRequired,
+  }),
+};
+
+export default FanDashboardSectionTwo;
