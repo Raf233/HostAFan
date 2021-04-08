@@ -1,0 +1,343 @@
+import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+import {
+  Grid,
+  Fab,
+  Card,
+  Button,
+  List,
+  ListItem,
+  Tooltip,
+} from "@material-ui/core";
+
+function FanDashboardSectionThree() {
+  return (
+    <React.Fragment>
+      <Grid container spacing={4}>
+        <Grid item xs={12} lg={6}>
+          <Card className="card-box mb-4">
+            <div className="card-header" style={{ backgroundColor: "#0E3D8B" }}>
+              <div className="card-header--title">
+                <small
+                  className="d-block text-uppercase mt-1"
+                  style={{ color: "white" }}
+                >
+                  Blogs
+                </small>
+                <b style={{ color: "white" }}>Latest</b>
+              </div>
+              <div className="card-header--actions">
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="primary"
+                  className="bg-strong-bliss text-white"
+                >
+                  View More Blogs
+                </Button>
+              </div>
+            </div>
+            <List className="pb-0">
+              <ListItem className="py-4">
+                <div className="d-flex flex-column flex-sm-row align-items-start">
+                  <div>
+                    <Card className="card-transparent mb-3 mb-sm-0">
+                      <a
+                        href="#/"
+                        onClick={(e) => e.preventDefault()}
+                        className="card-img-wrapper rounded"
+                      >
+                        <div className="img-wrapper-overlay">
+                          <div className="overlay-btn-wrapper">
+                            <Fab
+                              size="small"
+                              color="secondary"
+                              className="mx-auto d-flex align-items-center"
+                            >
+                              <FontAwesomeIcon
+                                icon={["fas", "plus-circle"]}
+                                className="font-size-lg"
+                              />
+                            </Fab>
+                          </div>
+                        </div>
+                        <img
+                          alt="..."
+                          className="card-img-top rounded"
+                          src="https://www.discoverstarline.com/wp-content/uploads/2019/03/Concert.jpg"
+                          style={{ width: 160 }}
+                        />
+                      </a>
+                    </Card>
+                  </div>
+                  <div className="pl-0 pl-sm-4">
+                    <div className="mb-1">
+                      <a
+                        className="font-size-lg"
+                        href="#/"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        The LA Nightlife
+                      </a>
+                    </div>
+                    <div>
+                      <div className="text-info badge badge-neutral-success">
+                        Blog
+                      </div>
+                    </div>
+                    <p className="mb-0 mt-2 text-black-50">
+                      A wonderful serenity has taken possession of my entire
+                      soul, like these sweet mornings ...
+                    </p>
+                  </div>
+                </div>
+              </ListItem>
+              <ListItem className="py-4">
+                <div className="d-flex flex-column flex-sm-row align-items-start">
+                  <div>
+                    <Card className="card-transparent mb-3 mb-sm-0">
+                      <a
+                        href="#/"
+                        onClick={(e) => e.preventDefault()}
+                        className="card-img-wrapper rounded"
+                      >
+                        <div className="img-wrapper-overlay">
+                          <div className="overlay-btn-wrapper">
+                            <Fab
+                              size="small"
+                              color="secondary"
+                              className="mx-auto d-flex align-items-center"
+                            >
+                              <FontAwesomeIcon
+                                icon={["fas", "plus-circle"]}
+                                className="font-size-lg"
+                              />
+                            </Fab>
+                          </div>
+                        </div>
+                        <img
+                          alt="..."
+                          className="card-img-top rounded"
+                          src="https://i0.wp.com/ashbygraff.com/wp-content/uploads/2019/12/set-outdoor-party-on-the-beach_t20_9JAlwB.jpg?resize=1013%2C675&ssl=1"
+                          style={{ width: 160 }}
+                        />
+                      </a>
+                    </Card>
+                  </div>
+                  <div className="pl-0 pl-sm-4">
+                    <div className="mb-1">
+                      <a
+                        className="font-size-lg"
+                        href="#/"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        Beach Party
+                      </a>
+                    </div>
+                    <div>
+                      <div className="text-info badge badge-neutral-success">
+                        Blog
+                      </div>
+                    </div>
+                    <p className="mt-2 text-black-50">
+                      Who formed us in his own image, and the breath ...
+                    </p>
+                  </div>
+                </div>
+              </ListItem>
+              <ListItem
+                className="d-block text-center p-3"
+                style={{ backgroundColor: "#0E3D8B" }}
+              >
+                <Tooltip arrow title="Facebook">
+                  <Button color="default" className="text-facebook">
+                    <span className="btn-wrapper--icon">
+                      <FontAwesomeIcon icon={["fab", "facebook"]} />
+                    </span>
+                  </Button>
+                </Tooltip>
+                <Tooltip arrow title="Dribbble">
+                  <Button color="default" className="text-dribbble mr-2 ml-2">
+                    <span className="btn-wrapper--icon">
+                      <FontAwesomeIcon icon={["fab", "dribbble"]} />
+                    </span>
+                  </Button>
+                </Tooltip>
+                <Tooltip arrow title="Twitter">
+                  <Button color="default" className="text-twitter">
+                    <span className="btn-wrapper--icon">
+                      <FontAwesomeIcon icon={["fab", "twitter"]} />
+                    </span>
+                  </Button>
+                </Tooltip>
+              </ListItem>
+            </List>
+          </Card>
+        </Grid>
+        <Grid item xs={12} lg={6}>
+          <Card className="card-box mb-4">
+            <div className="card-header" style={{ backgroundColor: "#5E3267" }}>
+              <div className="card-header--title">
+                <small
+                  className="d-block text-uppercase mt-1"
+                  style={{ color: "white" }}
+                >
+                  Blogs
+                </small>
+                <b style={{ color: "white" }}>Your Favorite Blogs</b>
+              </div>
+              <div className="card-header--actions">
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="primary"
+                  className="bg-strong-bliss text-white"
+                >
+                  View Other Blogs
+                </Button>
+              </div>
+            </div>
+            <List className="pb-0">
+              <ListItem className="py-4">
+                <div className="d-flex flex-column flex-sm-row align-items-start">
+                  <div>
+                    <Card className="card-transparent mb-3 mb-sm-0">
+                      <a
+                        href="#/"
+                        onClick={(e) => e.preventDefault()}
+                        className="card-img-wrapper rounded"
+                      >
+                        <div className="img-wrapper-overlay">
+                          <div className="overlay-btn-wrapper">
+                            <Fab
+                              size="small"
+                              color="secondary"
+                              className="mx-auto d-flex align-items-center"
+                            >
+                              <FontAwesomeIcon
+                                icon={["fas", "plus-circle"]}
+                                className="font-size-lg"
+                              />
+                            </Fab>
+                          </div>
+                        </div>
+                        <img
+                          alt="..."
+                          className="card-img-top rounded"
+                          src="https://www.discoverstarline.com/wp-content/uploads/2019/03/Concert.jpg"
+                          style={{ width: 160 }}
+                        />
+                      </a>
+                    </Card>
+                  </div>
+                  <div className="pl-0 pl-sm-4">
+                    <div className="mb-1">
+                      <a
+                        className="font-size-lg"
+                        href="#/"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        The LA Nightlife
+                      </a>
+                    </div>
+                    <div>
+                      <div className="text-info badge badge-neutral-success">
+                        Blog
+                      </div>
+                    </div>
+                    <p className="mb-0 mt-2 text-black-50">
+                      A wonderful serenity has taken possession of my entire
+                      soul, like these sweet mornings ...
+                    </p>
+                  </div>
+                </div>
+              </ListItem>
+              <ListItem className="py-4">
+                <div className="d-flex flex-column flex-sm-row align-items-start">
+                  <div>
+                    <Card className="card-transparent mb-3 mb-sm-0">
+                      <a
+                        href="#/"
+                        onClick={(e) => e.preventDefault()}
+                        className="card-img-wrapper rounded"
+                      >
+                        <div className="img-wrapper-overlay">
+                          <div className="overlay-btn-wrapper">
+                            <Fab
+                              size="small"
+                              color="secondary"
+                              className="mx-auto d-flex align-items-center"
+                            >
+                              <FontAwesomeIcon
+                                icon={["fas", "plus-circle"]}
+                                className="font-size-lg"
+                              />
+                            </Fab>
+                          </div>
+                        </div>
+                        <img
+                          alt="..."
+                          className="card-img-top rounded"
+                          src="https://i0.wp.com/ashbygraff.com/wp-content/uploads/2019/12/set-outdoor-party-on-the-beach_t20_9JAlwB.jpg?resize=1013%2C675&ssl=1"
+                          style={{ width: 160 }}
+                        />
+                      </a>
+                    </Card>
+                  </div>
+                  <div className="pl-0 pl-sm-4">
+                    <div className="mb-1">
+                      <a
+                        className="font-size-lg"
+                        href="#/"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        Beach Party
+                      </a>
+                    </div>
+                    <div>
+                      <div className="text-info badge badge-neutral-success">
+                        Blog
+                      </div>
+                    </div>
+                    <p className="mt-2 text-black-50">
+                      Who formed us in his own image, and the breath ...
+                    </p>
+                  </div>
+                </div>
+              </ListItem>
+              <ListItem
+                className="d-block text-center p-3"
+                style={{ backgroundColor: "#5E3267" }}
+              >
+                <Tooltip arrow title="Facebook">
+                  <Button color="default" className="text-facebook">
+                    <span className="btn-wrapper--icon">
+                      <FontAwesomeIcon icon={["fab", "facebook"]} />
+                    </span>
+                  </Button>
+                </Tooltip>
+                <Tooltip arrow title="Dribbble">
+                  <Button color="default" className="text-dribbble mr-2 ml-2">
+                    <span className="btn-wrapper--icon">
+                      <FontAwesomeIcon icon={["fab", "dribbble"]} />
+                    </span>
+                  </Button>
+                </Tooltip>
+                <Tooltip arrow title="Twitter">
+                  <Button color="default" className="text-twitter">
+                    <span className="btn-wrapper--icon">
+                      <FontAwesomeIcon icon={["fab", "twitter"]} />
+                    </span>
+                  </Button>
+                </Tooltip>
+              </ListItem>
+            </List>
+          </Card>
+        </Grid>
+      </Grid>
+    </React.Fragment>
+  );
+}
+
+export default FanDashboardSectionThree;
