@@ -1,0 +1,559 @@
+import React from "react";
+import {
+  Button,
+  Card,
+  Divider,
+  FormControl,
+  FormHelperText,
+  Grid,
+  InputLabel,
+  MenuItem,
+  TextField,
+  Select,
+  Snackbar,
+} from "@material-ui/core";
+import { Alert } from "@material-ui/lab";
+import { Formik } from "formik";
+import * as locationService from "../../services/locationService";
+import { getLookUpTables } from "../../services/lookUpService";
+import debug from "sabio-debug";
+import { locationSchema } from "../../schemas/locationSchema";
+import {
+  Autocomplete,
+  GoogleMap,
+  LoadScript,
+  Marker,
+} from "@react-google-maps/api";
+import Geocode from "react-geocode";
+import PropTypes from "prop-types";
+import { GOOGLE_API_KEY } from "../../services/serviceHelpers";
+
+const _logger = debug.extend("LocationForm");
+const selectMenus = ["States", "locationTypes"];
+const libraries = ["places"];
+
+const containerStyle = {
+  width: "1900px",
+  height: "400px",
+};
+const mapOptions = {
+  maxZoom: 12,
+  streetViewControl: false,
+};
+
+class Location extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      formData: {
+        initialLocation: "",
+        locationTypeId: "",
+        lineOne: "",
+        lineTwo: "",
+        city: "",
+        zip: "",
+        stateId: "",
+        latitude: "",
+        longitude: "",
+      },
+      lookUpTables: { locationTypes: [], stateNames: [] },
+      mapData: {
+        center: {
+          lat: 34.052235,
+          lng: -118.243683,
+        },
+        marker: {
+          lat: 0,
+          lng: 0,
+        },
+        zoom: 11,
+      },
+      open: false,
+      severity: "",
+      alertMessage: "",
+    };
+    this.autocomplete = null;
+  }
+
+  componentDidMount() {
+    let locationFormId = this.props.match.params.locationId;
+
+    getLookUpTables(selectMenus)
+      .then(this.onLookUpSuccess)
+      .catch(this.onLookUpError);
+
+    if (locationFormId) {
+      locationService
+        .getById(locationFormId)
+        .then(this.onGetByIdSuccess)
+        .catch(this.onGetByIdError);
+    }
+  }
+
+  onGetByIdSuccess = (response) => {
+    _logger("onGetByIdSuccess", response);
+    const formData = response.item;
+    let stateValue = formData.state.id;
+    let locationTypeValue = formData.locationType.id;
+
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        formData: {
+          ...prevState.formData,
+          initialLocation: `${formData.lineOne}, ${formData.city} ${formData.state.code} ${formData.zip}`,
+          locationTypeId: locationTypeValue,
+          lineOne: formData.lineOne,
+          lineTwo: formData.lineTwo,
+          city: formData.city,
+          zip: formData.zip,
+          stateId: stateValue,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+        },
+        mapData: {
+          ...prevState.mapData,
+          center: {
+            lat: formData.latitude,
+            lng: formData.longitude,
+          },
+          marker: {
+            lat: formData.latitude,
+            lng: formData.longitude,
+          },
+          zoom: 11,
+        },
+      };
+    });
+  };
+  onGetByIdError = (errResponse) => {
+    _logger("onGetByIdError", errResponse);
+  };
+
+  onLookUpSuccess = (response) => {
+    let locationTypeArray = response.item.locationTypes;
+    let statesArray = response.item.states;
+
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        lookUpTables: {
+          locationTypes: locationTypeArray.map(this.mapTableType),
+          stateNames: statesArray.map(this.mapTableType),
+        },
+      };
+    });
+  };
+  onLookUpError = (errResponse) => {
+    _logger("onLookUpError", errResponse);
+  };
+
+  onAddLocationSuccess = (response) => {
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        open: true,
+        severity: "success",
+        alertMessage: "Location Successfully Added!",
+      };
+    });
+  };
+  onAddLocationError = (errResponse) => {
+    _logger("locationAddError", errResponse);
+  };
+
+  onUpdateLocationSuccess = (response) => {
+    _logger("onUpdateLocationSuccess", response);
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        open: true,
+        severity: "success",
+        alertMessage: "Location Successfully Updated!",
+      };
+    });
+  };
+  onUpdateLocationError = (errResponse) => {
+    _logger("onUpdateLocationError", errResponse);
+  };
+
+  onLoad = (autocomplete) => {
+    this.autocomplete = autocomplete;
+  };
+
+  onGeocodeSuccess = (response) => {
+    const { lat, lng } = response.results[0].geometry.location;
+    const address = response.results[0].address_components;
+    _logger("GeocodeSuccess", { lat, lng });
+
+    let selectedAddress = this.mapAddressComponents(address);
+
+    this.setState((prevState) => {
+      let stateValue = prevState.lookUpTables.stateNames.find(
+        (stateName) => selectedAddress.stateName === stateName.props.children
+      );
+      return {
+        ...prevState,
+        formData: {
+          ...prevState.formData,
+          initialLocation: `${selectedAddress.lineOne},  ${selectedAddress.cityName} ${selectedAddress.stateName} ${selectedAddress.zipcode}`,
+          lineOne: `${selectedAddress.lineOne}`,
+          city: `${selectedAddress.cityName}`,
+          zip: `${selectedAddress.zipcode}`,
+          stateId: stateValue.props.value,
+          latitude: lat,
+          longitude: lng,
+        },
+        mapData: {
+          center: {
+            lat: lat,
+            lng: lng,
+          },
+          marker: {
+            lat: lat,
+            lng: lng,
+          },
+          zoom: 12,
+        },
+      };
+    });
+  };
+  onGeocodeError = () => {
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        open: true,
+        severity: "error",
+        alertMessage: "Geocode Error: API Key error/Address chosen error",
+      };
+    });
+  };
+
+  onPlaceChanged = () => {
+    if (this.autocomplete !== null) {
+      let addressObject = this.autocomplete.getPlace();
+      let address = addressObject.formatted_address;
+      _logger("onPlaceChanged", addressObject);
+
+      Geocode.fromAddress(`${address}`)
+        .then(this.onGeocodeSuccess)
+        .catch(this.onGeocodeError);
+    } else {
+      _logger("Autcomplete", "Not loaded yet");
+    }
+  };
+
+  handleSubmit = (values) => {
+    _logger("handleSubmit", { values });
+
+    let locationFormId = this.props.match.params.locationId;
+
+    if (locationFormId) {
+      locationService
+        .update(values, locationFormId)
+        .then(this.onUpdateLocationSuccess)
+        .catch(this.onUpdateLocationError);
+    } else {
+      locationService
+        .add(values)
+        .then(this.onAddLocationSuccess)
+        .catch(this.onAddLocationError);
+    }
+  };
+
+  handleClose = (reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    this.setState((prevState) => {
+      return { ...prevState, open: false };
+    });
+  };
+
+  mapAddressComponents = (addressComponents) => {
+    let addressObj = {
+      lineOne: null,
+      cityName: null,
+      stateName: null,
+      zipcode: null,
+    };
+
+    addressComponents.forEach((addressEle) => {
+      const componentType = addressEle.types[0];
+
+      switch (componentType) {
+        case "street_number": {
+          addressObj.lineOne = `${addressEle.long_name} `;
+          break;
+        }
+
+        case "route": {
+          addressObj.lineOne += addressEle.short_name;
+          break;
+        }
+
+        case "postal_code": {
+          addressObj.zipcode = `${addressEle.long_name}`;
+          break;
+        }
+
+        case "locality":
+          addressObj.cityName = addressEle.long_name;
+          break;
+
+        case "administrative_area_level_1": {
+          addressObj.stateName = addressEle.long_name;
+          break;
+        }
+      }
+    });
+
+    return addressObj;
+  };
+
+  mapTableType = (item) => {
+    return (
+      <MenuItem key={item.id} value={item.id}>
+        {item.name}
+      </MenuItem>
+    );
+  };
+
+  render() {
+    return (
+      <React.Fragment>
+        <LoadScript
+          id="script-loader"
+          googleMapsApiKey={GOOGLE_API_KEY}
+          libraries={libraries}
+        >
+          <Grid container spacing={4}>
+            <Grid item xs={12} lg={12}>
+              <Card className="p-4 mb-4">
+                <div className="font-size-lg font-weight-bold">Locations</div>
+                <Divider className="my-4" />
+                <Formik
+                  enableReinitialize={true}
+                  validationSchema={locationSchema}
+                  initialValues={this.state.formData}
+                  onSubmit={this.handleSubmit}
+                >
+                  {(props) => {
+                    const {
+                      values,
+                      touched,
+                      errors,
+                      handleSubmit,
+                      handleChange,
+                      handleBlur,
+                      isSubmitting,
+                    } = props;
+                    return (
+                      <form onSubmit={handleSubmit} className={"col-md-6 pt-4"}>
+                        <div className="d-flex align-items-start justify-content-between">
+                          <Autocomplete
+                            className="mr-3 w-100"
+                            onLoad={this.onLoad}
+                            onPlaceChanged={this.onPlaceChanged}
+                          >
+                            <TextField
+                              fullWidth
+                              name="initialLocation"
+                              className="input-field m-2"
+                              type="text"
+                              placeholder="Enter a Location"
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                              variant="outlined"
+                              error={
+                                touched.initialLocation &&
+                                Boolean(errors.initialLocation)
+                              }
+                              helperText={
+                                touched.initialLocation &&
+                                errors.initialLocation
+                              }
+                            />
+                          </Autocomplete>
+                          <FormControl className="w-100 pr-3">
+                            <InputLabel
+                              className="ml-4"
+                              error={
+                                touched.locationTypeId &&
+                                Boolean(errors.locationTypeId)
+                              }
+                              id="locationTypeId"
+                            >
+                              Select Location Type (Required)
+                            </InputLabel>
+                            <Select
+                              fullWidth
+                              labelWidth={205}
+                              labelId="locationTypeId"
+                              id="locationTypeId"
+                              name="locationTypeId"
+                              variant="outlined"
+                              className="m-2"
+                              value={values.locationTypeId}
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                              error={
+                                touched.locationTypeId &&
+                                Boolean(errors.locationTypeId)
+                              }
+                            >
+                              {this.state.lookUpTables.locationTypes}
+                            </Select>
+                            <FormHelperText
+                              className="ml-2"
+                              style={{ color: "red" }}
+                            >
+                              {touched.locationTypeId && errors.locationTypeId}
+                            </FormHelperText>
+                          </FormControl>
+                        </div>
+                        <div className="d-flex align-items-start justify-content-between">
+                          <TextField
+                            fullWidth
+                            disabled
+                            id="lineOne"
+                            name="lineOne"
+                            type="text"
+                            label="Address line one"
+                            variant="outlined"
+                            value={values.lineOne}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            className="m-2"
+                            error={touched.lineOne && Boolean(errors.lineOne)}
+                            helperText={touched.lineOne && errors.lineOne}
+                          />
+                          <TextField
+                            fullWidth
+                            id="lineTwo"
+                            name="lineTwo"
+                            type="text"
+                            label="Address line two (Optional)"
+                            variant="outlined"
+                            value={values.lineTwo}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            className="m-2"
+                            error={touched.lineTwo && Boolean(errors.lineTwo)}
+                            helperText={touched.lineTwo && errors.lineTwo}
+                          />
+                        </div>
+                        <div className="d-flex align-items-start justify-content-between">
+                          <TextField
+                            fullWidth
+                            disabled
+                            id="city"
+                            name="city"
+                            type="text"
+                            label="Enter city"
+                            variant="outlined"
+                            value={values.city}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            className="m-2"
+                            error={touched.city && Boolean(errors.city)}
+                            helperText={touched.city && errors.city}
+                          />
+                          <TextField
+                            fullWidth
+                            disabled
+                            id="zip"
+                            name="zip"
+                            type="text"
+                            label="Enter zipcode (Optional)"
+                            variant="outlined"
+                            className="m-2"
+                            value={values.zip}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            error={touched.zip && Boolean(errors.zip)}
+                            helperText={touched.zip && errors.zip}
+                          />
+                          <FormControl
+                            className="w-100 pr-3"
+                            error={touched.stateId && Boolean(errors.stateId)}
+                          >
+                            <InputLabel className="ml-4" id="stateId">
+                              Select State
+                            </InputLabel>
+                            <Select
+                              fullWidth
+                              disabled
+                              labelWidth={82}
+                              labelId="stateId"
+                              id="stateId"
+                              name="stateId"
+                              variant="outlined"
+                              className="m-2"
+                              value={values.stateId}
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                            >
+                              {this.state.lookUpTables.stateNames}
+                            </Select>
+                            <FormHelperText
+                              className="ml-2"
+                              style={{ color: "red" }}
+                            >
+                              {touched.stateId && errors.stateId}
+                            </FormHelperText>
+                          </FormControl>
+                        </div>
+                        <Button
+                          color="primary"
+                          variant="contained"
+                          type="submit"
+                          className="m-2"
+                          disabled={isSubmitting}
+                        >
+                          {this.props.match.params.locationId
+                            ? "Update"
+                            : "Submit"}
+                        </Button>
+                        <Snackbar
+                          open={this.state.open}
+                          autoHideDuration={3000}
+                          onClose={this.handleClose}
+                        >
+                          <Alert
+                            onClose={this.handleClose}
+                            severity={this.state.severity}
+                          >
+                            {this.state.alertMessage}
+                          </Alert>
+                        </Snackbar>
+                      </form>
+                    );
+                  }}
+                </Formik>
+              </Card>
+            </Grid>
+            <GoogleMap
+              mapContainerStyle={containerStyle}
+              center={this.state.mapData.center}
+              zoom={this.state.mapData.zoom}
+              options={mapOptions}
+            >
+              {<Marker position={this.state.mapData.marker} text="My Marker" />}
+            </GoogleMap>
+          </Grid>
+        </LoadScript>
+      </React.Fragment>
+    );
+  }
+}
+
+Location.propTypes = {
+  match: PropTypes.shape({
+    params: PropTypes.shape({
+      locationId: PropTypes.string,
+    }),
+  }),
+};
+
+export default Location;
