@@ -1,0 +1,366 @@
+import React, { Fragment } from "react";
+import PropTypes from "prop-types";
+import * as dateService from "../../services/dateService";
+import * as listingReservationService from "../../services/listingReservationService";
+import { Grid, Container, Card, Button, Dialog } from "@material-ui/core";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Slider from "react-slick";
+
+class ReservationDetails extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      reservationData: {
+        id: "",
+        listingId: "",
+        dateCheckIn: "",
+        dateCheckOut: "",
+        chargeId: "",
+        statusId: "",
+      },
+      setOpen: false,
+    };
+    this.reservationDetails = props.location.state.payload;
+    this.checkIn = dateService.formatDateTime(
+      this.reservationDetails.dateCheckIn
+    );
+    this.checkOut = dateService.formatDateTime(
+      this.reservationDetails.dateCheckOut
+    );
+  }
+
+  componentDidMount() {
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        reservationData: {
+          id: this.props.location.state.payload.id,
+          listingId: this.props.location.state.payload.listingId,
+          dateCheckIn: this.props.location.state.payload.dateCheckIn,
+          dateCheckOut: this.props.location.state.payload.dateCheckOut,
+          chargeId: this.props.location.state.payload.chargeId,
+          statusId: this.props.location.state.payload.statusId,
+        },
+      };
+    });
+  }
+
+  onRemoveClicked = () => {
+    this.setState(
+      (prevState) => {
+        return {
+          ...prevState,
+          reservationData: {
+            ...prevState.reservationData,
+            statusId: 5,
+          },
+          setOpen: false,
+        };
+      },
+      () => {
+        listingReservationService
+          .update(this.state.reservationData, this.state.reservationData.id)
+          .then(this.onUpdateSuccess)
+          .catch(this.onUpdateError);
+      }
+    );
+  };
+
+  onUpdateSuccess = (response) => {
+    this.redirectToDashboard();
+  };
+  onUpdateError = (errResponse) => {
+    //proprietary code
+  };
+
+  redirectToDashboard = () => {
+    this.props.history.push("/dashboard/fan");
+  };
+
+  handleOpen = () => {
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        setOpen: true,
+      };
+    });
+  };
+  handleClose = () => {
+    this.setState((prevState) => {
+      return {
+        ...prevState,
+        setOpen: false,
+      };
+    });
+  };
+
+  render() {
+    return (
+      <Fragment>
+        <div className="feature-box bg-slick-carbon py-3 py-xl-5">
+          <Container className="py-3 py-xl-5">
+            <Grid container spacing={4}>
+              <Grid item xs={12} lg={6} className="d-flex align-items-center">
+                <Card className="card-box flex-fill mb-4 mb-xl-0 img-wrapper img-wrapper-dark">
+                  <img
+                    alt="..."
+                    className="align-items-center"
+                    height={400}
+                    width={600}
+                    src={this.reservationDetails.listing.event.imageUrl}
+                  />
+                </Card>
+              </Grid>
+              <Grid item xs={12} lg={6}>
+                <div className="py-0 py-xl-5">
+                  <div className="pl-0 pl-xl-5 text-white">
+                    <h1 className="display-3 mb-3 font-weight-bold">
+                      {this.reservationDetails.listing.title}
+                    </h1>
+                    <p className="font-size-xl text-white-50">
+                      {this.reservationDetails.listing.shortDescription}
+                    </p>
+                    <div className="d-block mt-4">
+                      <Slider
+                        slidesToShow={2}
+                        slidesToScroll={2}
+                        dots={true}
+                        className="slick-slider slick-slider-left"
+                      ></Slider>
+                    </div>
+                  </div>
+                </div>
+              </Grid>
+            </Grid>
+          </Container>
+        </div>
+        <div className="feature-box py-5">
+          <Container className="py-5">
+            <Grid item xl={7} md={9} className="px-0">
+              <h1 className="display-3 mb-3 font-weight-bold">
+                What to expect:
+              </h1>
+              <p className="font-size-lg text-black-50">
+                {this.reservationDetails.listing.description}
+              </p>
+            </Grid>
+            <Grid container spacing={4}>
+              <Grid item md={6} xl={4}>
+                <div className="py-2 py-xl-5">
+                  <div className="d-block pl-0 pl-xl-3 mt-4">
+                    <div className="feature-box mb-4 pr-4">
+                      <h3 className="font-size-lg font-weight-bold my-3">
+                        Main Event Details:{" "}
+                        {this.reservationDetails.listing.event.name}
+                      </h3>
+                      <p className="text-black-50 mb-3">
+                        {this.reservationDetails.listing.event.shortDescription}
+                      </p>
+                      <p className="text-black-50 mb-3">
+                        {dateService.formatDateTime(
+                          this.reservationDetails.listing.event.dateStart
+                        )}{" "}
+                        to{" "}
+                        {dateService.formatDateTime(
+                          this.reservationDetails.listing.event.dateEnd
+                        )}
+                      </p>
+                    </div>
+                    <div className="feature-box mb-4 pr-4">
+                      <h3 className="font-size-lg font-weight-bold my-3">
+                        Service Type:
+                      </h3>
+                      <p className="text-black-50 mb-3">
+                        {this.reservationDetails.listing.serviceType.name}
+                      </p>
+                    </div>
+                    <div className="feature-box pr-4">
+                      <h3 className="font-size-lg font-weight-bold my-3">
+                        Additional Details:
+                      </h3>
+                      <p className="text-black-50 mb-3">
+                        {this.reservationDetails.listing.serviceType.id === 1
+                          ? `- Guest Capacity: ${this.reservationDetails.listing.listingProfile.GuestCapacity}`
+                          : `- License Status: ${this.reservationDetails.listing.listingProfile.LicenseStatus}`}
+                      </p>
+                      <p className="text-black-50 mb-3">
+                        {this.reservationDetails.listing.serviceType.id === 1
+                          ? `- Bedrooms: ${this.reservationDetails.listing.listingProfile.Bedrooms}`
+                          : `- Insurance Status: ${this.reservationDetails.listing.listingProfile.LicenseStatus}`}
+                      </p>
+                      <p className="text-black-50 mb-3">
+                        {this.reservationDetails.listing.serviceType.id === 1
+                          ? `- Baths: ${this.reservationDetails.listing.listingProfile.Baths}`
+                          : ``}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Grid>
+              <Grid
+                item
+                md={6}
+                xl={8}
+                className="d-flex pt-5 pt-xl-0 align-items-start align-items-xl-center"
+              >
+                <Card className="w-100 shadow-lg p-5 text-white p-5 bg-plum-plate">
+                  <div className="py-4">
+                    <h5 className="font-size-xl">
+                      Check-in Date/Time:
+                      <strong className="pt-2 font-weight-bold d-block">
+                        <small className="opacity-5">starting at </small>
+                        {this.checkIn}
+                      </strong>
+                    </h5>
+                    <br />
+                    <h5 className="font-size-xl">
+                      Check-out Date/Time:
+                      <strong className="pt-2 font-weight-bold d-block">
+                        <small className="opacity-5">ending at </small>
+                        {this.checkOut}
+                      </strong>
+                    </h5>
+                    <Button
+                      size="large"
+                      variant="contained"
+                      color="primary"
+                      className="bg-strong-bliss text-white"
+                      onClick={this.redirectToDashboard}
+                    >
+                      Back to Dashboard
+                    </Button>
+                    <Button
+                      size="large"
+                      variant="contained"
+                      color="primary"
+                      className="ml-2 bg-warning text-white"
+                      onClick={this.handleOpen}
+                    >
+                      Cancel Reservation
+                    </Button>
+                    <Dialog
+                      open={this.state.setOpen}
+                      onClose={this.handleClose}
+                      aria-labelledby="alert-dialog-title"
+                      aria-describedby="alert-dialog-description"
+                      classes={{ paper: "modal-dark bg-plum-plate" }}
+                    >
+                      <DialogTitle id="alert-dialog-title">
+                        {"Warning"}
+                      </DialogTitle>
+                      <DialogContent>
+                        <DialogContentText
+                          id="alert-dialog-description"
+                          className="text-white"
+                        >
+                          Are you sure you want to cancel this reservation?
+                        </DialogContentText>
+                      </DialogContent>
+                      <DialogActions>
+                        <Button
+                          onClick={this.handleClose}
+                          color="primary"
+                          className="bg-strong-bliss text-white"
+                        >
+                          No
+                        </Button>{" "}
+                        <Button
+                          onClick={this.onRemoveClicked}
+                          color="primary"
+                          autoFocus
+                          className="bg-warning text-white ml-auto"
+                        >
+                          Yes
+                        </Button>
+                      </DialogActions>
+                    </Dialog>
+                  </div>
+                </Card>
+              </Grid>
+            </Grid>
+          </Container>
+        </div>
+      </Fragment>
+    );
+  }
+}
+
+ReservationDetails.propTypes = {
+  history: PropTypes.shape({
+    push: PropTypes.func.isRequired,
+  }),
+  location: PropTypes.shape({
+    state: PropTypes.shape({
+      payload: PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        listingId: PropTypes.number.isRequired,
+        dateCheckIn: PropTypes.string.isRequired,
+        dateCheckOut: PropTypes.string.isRequired,
+        chargeId: PropTypes.number.isRequired,
+        statusId: PropTypes.number.isRequired,
+        listing: PropTypes.shape({
+          id: PropTypes.number.isRequired,
+          title: PropTypes.string.isRequired,
+          shortDescription: PropTypes.string.isRequired,
+          description: PropTypes.string.isRequired,
+          event: PropTypes.shape({
+            name: PropTypes.string.isRequired,
+            dateStart: PropTypes.string.isRequired,
+            dateEnd: PropTypes.string.isRequired,
+            shortDescription: PropTypes.string.isRequired,
+            imageUrl: PropTypes.string.isRequired,
+          }),
+          serviceType: PropTypes.shape({
+            id: PropTypes.number.isRequired,
+            name: PropTypes.string.isRequired,
+          }),
+          listingProfile: PropTypes.shape({
+            Baths: PropTypes.number,
+            Bedrooms: PropTypes.number,
+            GuestCapacity: PropTypes.number,
+            CostPerNight: PropTypes.number,
+            LicenseStatus: PropTypes.number,
+            InsuranceStatus: PropTypes.number,
+          }),
+          type: PropTypes.string,
+        }),
+      }),
+    }),
+  }),
+  details: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    dateCheckIn: PropTypes.string.isRequired,
+    dateCheckOut: PropTypes.string.isRequired,
+    listing: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      title: PropTypes.string.isRequired,
+      shortDescription: PropTypes.string.isRequired,
+      description: PropTypes.string.isRequired,
+      event: PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        dateStart: PropTypes.string.isRequired,
+        dateEnd: PropTypes.string.isRequired,
+        shortDescription: PropTypes.string.isRequired,
+        imageUrl: PropTypes.string.isRequired,
+      }),
+      serviceType: PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        name: PropTypes.string.isRequired,
+      }),
+      listingProfile: PropTypes.shape({
+        Baths: PropTypes.number,
+        Bedrooms: PropTypes.number,
+        GuestCapacity: PropTypes.number,
+        CostPerNight: PropTypes.number,
+        LicenseStatus: PropTypes.number,
+        InsuranceStatus: PropTypes.number,
+      }),
+      type: PropTypes.string,
+    }),
+  }),
+};
+
+export default ReservationDetails;
