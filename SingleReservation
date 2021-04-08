@@ -1,0 +1,98 @@
+import React from "react";
+import { List, ListItem, Card, Button } from "@material-ui/core";
+import PropTypes from "prop-types";
+import { formatDateTime } from "../../services/dateService";
+
+const SingleReservation = (props) => {
+  const checkIn = formatDateTime(props.reservation.dateCheckIn);
+
+  const getReservationDetailsClick = () => {
+    props.reservationDetails(props.reservation);
+  };
+
+  return (
+    <React.Fragment>
+      <List>
+        <ListItem className="py-4 d-block">
+          <div className="d-flex justify-content-between">
+            <div className="d-flex align-items-center">
+              <div>
+                <Card className="card-transparent mb-3 mb-sm-0">
+                  <a
+                    href="#/"
+                    onClick={(e) => e.preventDefault()}
+                    className="card-img-wrapper card-box-hover-rise rounded-sm"
+                  >
+                    <img
+                      alt="..."
+                      className="card-img-top rounded-sm"
+                      src={props.reservation.listing.event.imageUrl}
+                      style={{ width: 140 }}
+                    />
+                  </a>
+                </Card>
+              </div>
+              <div className="pl-0 pl-sm-4">
+                <b className="font-weight-bold font-size-lg text-black">
+                  {props.reservation.listing.title}
+                </b>
+                <p className="text-black-50 mb-0">
+                  {props.reservation.listing.shortDescription}
+                </p>
+                <small className="text-black-50 pt-1 d-block">
+                  Host:{" "}
+                  <b className="text-first">
+                    {props.reservation.listing.createdBy.firstName +
+                      " " +
+                      props.reservation.listing.createdBy.lastName}
+                  </b>
+                </small>
+                <small className="text-black-50 pt-1 d-block">
+                  Check-in Date/Time: <b className="text-first">{checkIn}</b>
+                </small>
+              </div>
+            </div>
+            <div className="d-flex align-items-center">
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                className="mr-3 bg-amy-crisp text-white"
+                onClick={getReservationDetailsClick}
+              >
+                Details
+              </Button>
+            </div>
+          </div>
+        </ListItem>
+      </List>
+    </React.Fragment>
+  );
+};
+
+SingleReservation.propTypes = {
+  reservationDetails: PropTypes.func.isRequired,
+
+  reservation: PropTypes.shape({
+    dateCheckIn: PropTypes.string.isRequired,
+    listing: PropTypes.shape({
+      title: PropTypes.string.isRequired,
+      shortDescription: PropTypes.string.isRequired,
+      event: PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        imageUrl: PropTypes.string.isRequired,
+        dateStart: PropTypes.string.isRequired,
+      }),
+      createdBy: PropTypes.shape({
+        firstName: PropTypes.string.isRequired,
+        lastName: PropTypes.string.isRequired,
+      }),
+    }),
+  }),
+
+  history: PropTypes.shape({
+    push: PropTypes.func.isRequired,
+  }),
+};
+
+export default SingleReservation;
